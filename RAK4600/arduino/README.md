@@ -61,13 +61,12 @@ Connect your RAK4600 LPWAN Evaluation Board to your Windows Machine using the pr
 **Note**：
 This device released by RAKWireless is already pre-loaded with its latest BootLoader firmware upon manufacture.
 Normally, you don't need to reflash the BootLoader and you can jump to Section [Arduino IDE BSP Installation](#arduino-ide-bsp-installation).
-If you want to have your device's firmware burned or upgraded, please refer to the link below:
+Before starting Device Firmware Setup make sure you have a [Segger j-link](https://www.segger.com/products/debug-probes/j-link/)
 
-https://doc.rakwireless.com/rak4600-lora-evaluation-board/burning-the-firmware-into-the-device
+If you want to have your device's firmware burned or upgraded, please refer to the link below:
+https://doc.rakwireless.com/rak4600-lora-evaluation-board/burning-the-firmware-into-the-device  
 
 You can also refer to the following link to customize your own bootloader:[Adafruit_nRF52_Bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader) 
-
-![DFU](/RAK4600/image/DFU%20Log.png)
 
 ### Device Firmware Upgrade
 
@@ -77,9 +76,11 @@ The bootloader of RAK4600 supports the serial port upgrade program. Use the Ardu
 2. After restarting the MCU, disconnect pin 18 from GND. The current state is bootloader mode.
 3. Click the `Upload` button to update the firmware to RAK4600.
 
+![DFU](/RAK4600/image/DFU%20Log.png)
+
 **Note**：
 
-​>   1. On RAK4600 Evaluation Board the silk screen of pin 18 on the back of the board is "**RX1**".
+​>On RAK4600 Evaluation Board the silk screen of pin 18 on the back of the board is "**RX1**".
 
 ![DFU](/RAK4600/image/rak4600_back.jpg)
 
@@ -122,7 +123,7 @@ Add 'https://downloads.rakwireless.com/Arduino/BSP/package_raknrf_index.json' as
 ![board_manager](/RAK4600/image/board_manager.png)
 
 
-5. Restart IDE and Open Board Manager tool : Tools -> Board -> Board Manager
+5. Restart Arduino IDE and Open Board Manager tool : Tools -> Board -> Board Manager
 
 On Board Manager type RAK then click install 'RAK Wireless nRF Boards'.
 
@@ -179,7 +180,7 @@ Modify the device parameters to your own.
 
 ![Device Parameter](/RAK4600/image/LoRa_OTAA_Parameters.png)
 
->Please note that the default region for MCCI LoRaWAN LMIC Library is US915, if you want to use another region like EU868, you should open the file "lmic_project_config.h" in the folder <...\Documents\Arduino\libraries\arduino-lmic-master\project_config>, and modify the region to the one you want to use.
+>Please note that the default region for MCCI LoRaWAN LMIC Library is US915, if you want to use another region like EU868, you should open the file "lmic_project_config.h" on Arduino Libraries folder <...\Documents\Arduino\libraries\arduino-lmic-master\project_config>, and modify the region to the one you want to use.
 
 ![Region](/RAK4600/image/Arduino-LoRa%20region%20configuration.png)
 
