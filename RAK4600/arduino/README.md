@@ -9,13 +9,6 @@
 
 ![rak4600_eb](/RAK4600/image/rak4600_eb.jpg)
 
-## Content
-- [Introduction](#introduction)    
-- [Safety information](#safety-information)    
-- [Hardware Setup](#hardware-setup)
-- [AT Commands Tool](#at-commands-tool)
-- [Arduino IDE BSP Installation](#arduino-ide-bsp-installation)
-- [PlatformIO BSP Installation](#platformio-bsp-installation)
 
 ## Introduction
 
@@ -32,9 +25,29 @@ Its RF communication capabilities (LoRa+BLE) make it suitable for a variety of a
 
 [RAK4600 Evaluation Board ](https://doc.rakwireless.com/rak4600-lora-evaluation-board/overview)
 
+>**RAKwireless invests time and resources providing this open source code, please support RAKwireless and open-source hardware by purchasing products from RAKwireless!**
+
+For support and questions about RAKwireless products please visit our [forum](https://forum.rakwireless.com/)
+
 RAK4600 LPWAN Evaluation Board can be ordered in RAK store:
 
 https://store.rakwireless.com/products/rak4600-evaluation-board
+
+----
+## Where to find what
+- Documentation
+    - [Safety Information](#safety-information)
+	- [Hardware Setup](#hardware-setup)
+	- [Device Firmware Setup](#device-firmware-setup)
+	- [Device Firmware Upgrade](#device-firmware-upgrade)
+	- [AT Commands Tool](#at-commands-tool)	
+	- [Arduino IDE BSP Installation](#arduino-ide-bsp-installation)
+
+- [Examples]
+	- [BLE](#ble-example)
+    - [LoRa](#lora-example)
+	- [BLE and LoRa](#ble-and-lora-example)
+	- [MicroPython](/RAK4600/micropython/README.md)
 
 ### Safety Information
 
@@ -188,7 +201,7 @@ Modify the device parameters to your own.
 
 ![Run information](/RAK4600/image/running%20information.png) 
 
-### BLE + LoRa example
+### BLE and LoRa example
 
 Open the example project file `BLE_Scan_LoRa.ino` in Arduino IDE: File->Examples->RAK WisBlock Example->BLE_Scan_LoRa
 
@@ -197,103 +210,6 @@ Modify the LoRa parameters to your own, compile and upload it as before.
 We can see the following logs.
 
 ![Run information](/RAK4600/image/ble%2Blora.png)
-
-## PlatformIO BSP Installation
-
-### Install PlatformIO
-
-First of all, install VS code which is a great and open source tool, and you can download it here:
-
-https://code.visualstudio.com/
-
-After installing VS code, you can search PlatformIO extension and install it:
-
-![Ext Platformio](/RAK4600/image/ext_platformio.png)
-
-
-### Install Nordic nRF52 Arduino framework 
-
-After installing PlatformIO, you can see the PlatformIO icon and open it as follow:
-
-![PlatformIO](/RAK4600/image/platformio.png)
-
-Open "Platforms" in PlatformIO and search "Nordic" as follow:
-
-![Nordic Platform](/RAK4600/image/nordic_platform.png)
-
-You can see there are several items, just click "Nordic nRF52" item and "Install" it as follow:
-
-![board_nordic](/RAK4600/image/board_nordic.png)
-
-![nrf52_platform](/RAK4600/image/nrf52_platform.png)
-
-### Get patch files for RAK WisBlock Core boards 
-
-Download the PlatformIO folder from:
-
-https://github.com/RAKWireless/WisBlock/tree/master/PlatformIO/
-
-and save it on your computer.
-
-### Add WisBlock Core RAK4631 to the platform
-
-Copy the file **`wiscore_rak4631.json`** to the boards folder of the nordic nrf52 platform folder.
-
-The path maybe like: 
-
- - Windows: %USER%\.platformio\platforms\nordicnrf52\boards
-
-Then, create a new project in PlatformIO:
-
-![add_project](/RAK4600/image/add_project.png)
-
-Choose "WisCore RAK4631 Board (RAKwireless)" for "Board" item, and choose "Arduino" for "Framework" item as follow:
-
-![project_wizard](/RAK4600/image/project_wizard.png)
-
-After creating successfully, you can see the project:
-
-![wisblock](/RAK4600/image/wisblock.png)
-
-### Add WisBlock Core RAK4631 to the package
-
-Now, Copy the complete folder "WisCore_RAK4631_Board" in the "PlatformIO" folder which you just downloaded to the framework-arduinoadafruitnrf52 package variants folder. The path maybe like:
- - Windows: %USER%\.platformio\packages\framework-arduinoadafruitnrf52\variants
-
-Finally, restart the PlatformIO.
-
-OK, you've install and configure PlatformIO for WisBlock successfully.
-
-### First example code
-
-Now, let's try to compile an example of WisBlock using PlatformIO. We use the LoRaWAN® OTAA example in this document:
-
-https://github.com/RAKWireless/WisBlock/tree/master/examples/communications/LoRa/LoRaWAN/LoRaWAN_OTAA/
-
-Just copy the source code of the .ino file into the main.cpp of the PlatformIO project we just created:
-
-![lorawan_vscode](/RAK4600/image/lorawan_vscode.png)
-
-Then we need to install the LoRaWAN® library "SX126x-Arduino" in PlatformIO firstly because this example is built based on this library. Just search "SX126x" in "Libraries" item of PlatformIO, and you can see "SX126x-Arduino" as follow:
-
-![radiolib](/RAK4600/image/radiolib.png)
-
-Just click it and "Install" this library as follow:
-
-![sx126x](/RAK4600/image/sx126x.png)
-
-Then compile it by click the compiling icon at the bottom tool bar as follow:
-
-![](/RAK4600/image/.png) 
-
-![compiled_vscode](/RAK4600/image/compiled_vscode.png)
-
-Great! We've compiled this example successfully!
-
-Same as in Arduino IDE, there is an upload icon (red circle) on the right of the compiling icon (green circle) which can be used to upload the compiled firmware into your device.
-
-![pio-flash](/RAK4600/image/pio-flash.jpg)
-
 
 ## Credits
 
