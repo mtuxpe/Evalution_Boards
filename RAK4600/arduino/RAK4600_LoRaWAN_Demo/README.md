@@ -15,11 +15,8 @@ The defined region tells the library which frequency and which channels should b
 - REGION_KR920 -> Korea 920 MHz
 - REGION_US915 -> US 915 MHz
 
-The region can be selected from the tools menu of ArduinoIDE
-
-![6](res/6.jpg)
-
-In addition you need
+To use this sketch, first register your application and device with the things network, to set or generate an AppEUI, DevEUI and AppKey.
+Multiple devices can use the same AppEUI, but each device has its own DevEUI and AppKey.
 
 OTAA
 - Device EUI if you want to use ABP registration of the device
@@ -30,14 +27,8 @@ The devices must be registered on your LoRaWan® server before they can send and
 
 ## 2. Hardware Required
 
-To build the LoRa® system. With just one WisBlock Core RAK4631 plugged into the WisBlock Base RAK5005-O board the system is ready to be used.
-
-- WisBlock Base RAK5005-O
-- WisBlock Core RAK4631
-
-The RAK4631 is the WisBlock Core which can be connected to CPU SLOT of WisBlock via pin to pin groove like below. Besides, it provides SWD port to download via Jlink. Two antenna (BLE and LoRa®). Screws of four corners help stabilize connection with WisBlock.
-
-![2](res/2.png)
+- RAK4600 Evaluation Board
+- Valid LoRa gateway
 
 ## 3. Software Required
 
@@ -51,28 +42,28 @@ After install Arduino IDE and BSP according to the Quick Start Guide, you can in
 
 ![mcci_library](/RAK4600/image/mcci_library.png)
 
+>Note: This library requires Arduino IDE version 1.6.6 or above, since it requires C99 mode to be enabled by default.
 
-### 3.2 Feature of  library
+### 3.2 Feature of Arduino-LMIC library
 
-The library is an excellent library, supports below:
+The Arduino-LMIC takes care of all logical MAC states and timing constraints and drives the Semtech SX1276 LoRa radio.
+Only a limited number of features was tested on Arduino port, so be careful when using any of the untested features.
+Some tested features :
 
-- LoRaWAN® protocol V1.0.2
-- Class A and Class C
-- Region EU868/US915/AU915/KR920/AS923/IN865
-- OTAA and ABP
-- Dutycycle
-- ADR/Datarate/Tx power configuration
-- Confirm/Unconfirm
-- DevEUI/AppEUI/AppKey/DevAddr/NwsKey/AppsKey configuration
-- Send data port 
+- Sending packets uplink, taking into account duty cycling.
+- Encryption and message integrity checking.
+- Custom frequencies and data rate settings.
+- Over-the-air activation (OTAA / joining).
+- Receiving downlink packets in the RX1 and RX2 windows.
+- MAC command processing
 
 ### 3.3 Run a simple example
 
 RAKwireless provides a lot of example based on this library. Here choose a simple example to show how to develop a LoRaWAN® application.
 
 #### 3.3.1 Scene description
-
-Download the example from https://github.com/RAKWireless/WisBlock/tree/master/examples/communications/LoRa/LoRaWAN/LoRaWAN_OTAA/ . The example will communicate with server in EU868, join type in OTAA. And send "hello" to server period.
+ 
+The example will communicate with server in EU868, join type in OTAA. And send "Hello_%d" to server period.
 
 #### 3.3.2 Gateway configuration
 
@@ -102,7 +93,7 @@ Connect WisBlock to PC via USB. Arduino will recognize the board. The red led is
 
 ![6](res/6-1594607481721.jpg)
 
-Then click Upload (arrow button), it will compile and download to RAK4631 automatically. The blue led is on means download ok.
+Then click Upload (arrow button), it will compile and download to RAK4600 automatically.
 
 ![7](res/7.png)
 
@@ -194,15 +185,7 @@ void setup()
 
 #### 3.4.7 Software initialization
 
-```
-void setup()
-{
-	...
 
-	...
-	
-}
-```
 
 This part is LoRaWAN® initialization with user's configuration,join type and callbacks.
 
@@ -280,37 +263,19 @@ This callback coordinates with lmh_class_request in Class C. When node needs cha
 #### 3.4.13 Send data
 
 ```
-void send_lora_frame(void)
-{
-	if (lmh_join_status_get() != LMH_SET)
-	{
-		//Not joined, try again later
-		return;
-	}
-
-	uint32_t i = 0;
-  memset(m_lora_app_data.buffer, 0, LORAWAN_APP_DATA_BUFF_SIZE);
-	m_lora_app_data.port = gAppPort;
-	m_lora_app_data.buffer[i++] = 'H';
-	m_lora_app_data.buffer[i++] = 'e';
-	m_lora_app_data.buffer[i++] = 'l';
-	m_lora_app_data.buffer[i++] = 'l';
-	m_lora_app_data.buffer[i++] = 'o';
-  m_lora_app_data.buffer[i++] = '!';
-	m_lora_app_data.buffsize = i;
-
-    lmh_error_status error = lmh_send(&m_lora_app_data, gCurrentConfirm);
-    if (error == LMH_SUCCESS)
-    {
-        count++;
-        Serial.printf("lmh_send ok count %d\n", count);
+void do_send(osjob_t* j){
+    // Check if there is not a current TX/RX job running
+    if (LMIC.opmode & OP_TXRXPEND) {
+        Serial.println(F("OP_TXRXPEND, not sending"));
+    } else {
+        // Prepare upstream data transmission at the next possible time.
+        sprintf((char *)lora_data, "Hello_%d", lora_count++);
+        LMIC_setTxData2(1, lora_data, strlen((char *)lora_data), LORA_CONFIRMED);
+        Serial.println(F("Packet queued"));
     }
-    else
-    {
-        count_fail++;
-        Serial.printf("lmh_send fail count %d\n", count_fail);
-    }
+    // Next TX is scheduled after TX_COMPLETE event.
 }
+
 ```
 
 This function will fill in the packet and send data to server. m_lora_app_data is from LoRaWAN® library and size is no more than 242 bytes. For example, User can call this in a timer handle. 
@@ -331,11 +296,6 @@ As the example shows, its default region is EU868. User can change it in Arduino
 
 #### 3.5.2 OTAA/ABP configuration
 
-In *.ino,  LoRaWAN® software configuration part, true means OTAA, false means ABP.
-
-```
-bool doOTAA = true;
-```
 
 #### 3.5.3 Dutycycle configuration
 
@@ -401,4 +361,4 @@ Same in Arduino project, *.ino. LoRaWAN application port  can be set from **0~25
 uint8_t gAppPort = 2;   /* data port*/
 
 
-LoRa® is a registered trademark or service mark of Semtech Corporation or its affiliates. LoRaWAN® is a licensed mark.
+>LoRa® is a registered trademark or service mark of Semtech Corporation or its affiliates. LoRaWAN® is a licensed mark.
