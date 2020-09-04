@@ -43,7 +43,7 @@ https://store.rakwireless.com/products/rak4600-evaluation-board
 	- [AT Commands Tool](#at-commands-tool)	
 	- [Arduino IDE BSP Installation](#arduino-ide-bsp-installation)
 
-- [Examples]
+- Examples
 	- [BLE](#ble-example)
     - [LoRa](#lora-example)
 	- [BLE and LoRa](#ble-and-lora-example)
@@ -62,8 +62,9 @@ What do you need?
 Before going through the Hardware Setup guide of the RAK4600 LPWAN Evaluation Board, make sure to prepare the items listed below:
 
 1. RAK4600 LPWAN Evaluation Board 
-2. Micro USB Cable
-3. Windows PC
+2. RAKDAP1 DapLink tools
+3. Micro USB Cable
+4. Windows PC
 
 Connect your RAK4600 LPWAN Evaluation Board to your Windows Machine using the provided Micro USB cable.
 
@@ -72,14 +73,9 @@ Connect your RAK4600 LPWAN Evaluation Board to your Windows Machine using the pr
 ### Device Firmware Setup
 
 **Note**：
-This device released by RAKWireless is already pre-loaded with its latest BootLoader firmware upon manufacture.
-Normally, you don't need to reflash the BootLoader and you can jump to Section [Arduino IDE BSP Installation](#arduino-ide-bsp-installation).
-Before starting Device Firmware Setup make sure you have a [Segger j-link](https://www.segger.com/products/debug-probes/j-link/)
-
-If you want to have your device's firmware burned or upgraded, please refer to the link below:
-https://doc.rakwireless.com/rak4600-lora-evaluation-board/burning-the-firmware-into-the-device  
-
-You can also refer to the following link to customize your own bootloader:[Adafruit_nRF52_Bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader) 
+This device released by RAKWireless is already pre-loaded with a bootloader and a "default" application that supports this AT-command interface.
+Please refer to section [AT Commands Tool ](#at-commands-tool)to use AT command. If you want to program your own application with Arduino IDE you need to reflash the RAK4600 with a different bootloader.
+You can also refer to the following link to customize your own bootloader:[ Adafruit_nRF52_Bootloader](https://github.com/adafruit/Adafruit_nRF52_Bootloader) 
 
 ### Device Firmware Upgrade
 
@@ -91,9 +87,7 @@ The bootloader of RAK4600 supports the serial port upgrade program. Use the Ardu
 
 ![DFU](/RAK4600/image/DFU%20Log.png)
 
-**Note**：
-
-​>On RAK4600 Evaluation Board the silk screen of pin 18 on the back of the board is "**RX1**".
+>**Note**： On RAK4600 Evaluation Board the silk screen of pin 18 on the back of the board is "**RX1**".
 
 ![DFU](/RAK4600/image/rak4600_back.jpg)
 
@@ -113,6 +107,15 @@ The link below shows the AT Commands available for use:
 https://doc.rakwireless.com/rak4600-lora-evaluation-board/at-commands-for-rak4600
 
 ## Arduino IDE BSP Installation
+
+### Burning the bootloader
+
+Before using RAK4600 with Arduino IDE you need to reflash the bootloader.The bootloader is in the Github Repo: 
+https://github.com/RAKWireless/RAK4600_Arduino/blob/master/feather_nrf52832_bootloader.hex
+
+Please refer to the link for detailed instructions:[ Burning the Firmware](https://staging.docs.rakwireless.com/Product-Categories/WisDuo/RAK4600-Evaluation-Board/Quickstart/#burning-the-firmware)
+
+### Install IDE
 
 The following describes how the board builds the development environment in Arduino IDE and runs BLE and LoRa application examples.
 

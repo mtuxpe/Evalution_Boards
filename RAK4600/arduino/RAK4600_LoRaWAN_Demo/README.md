@@ -4,16 +4,15 @@
 
 This example shows how to setup RAK4600 LPWAN Evaluation Board as a LoRaWan® sensor node.
 It sends a valid LoRaWAN packet with payload "Hello_%d", using frequency and encryption settings matching those of the The Things Network. 
-The parameter %d is the packet counter.
-If you want to use LoRaWan® communication protocol you need to define a region. 
-The defined region tells the library which frequency and which channels should be used. Valid regions are:
+The parameter %d is the packet counter.If you want to use LoRaWan® communication protocol you need to define a region. 
+The defined region tells the library which frequency and which channels should be used.
+Valid regions for MCCI LoRaWan LMIC library:  
 
-- REGION_AS923 -> Asia 923 MHz
-- REGION_AU915 -> Australia 915 MHz
-- REGION_EU868 -> Europe 868 MHz
-- REGION_IN865 -> India 865 MHz
-- REGION_KR920 -> Korea 920 MHz
-- REGION_US915 -> US 915 MHz
+eu_868: EU
+us_915: US
+au_921: Australia 
+as_923: Asia
+in_866: India
 
 To use this sketch, first register your application and device with the things network, to set or generate an AppEUI, DevEUI and AppKey.
 Multiple devices can use the same AppEUI, but each device has its own DevEUI and AppKey.
@@ -23,7 +22,9 @@ OTAA
 - Application EUI
 - Application Key, the AES encryption/decryption cipher application key
 
-The devices must be registered on your LoRaWan® server before they can send and receive data. The above mentioned EUIs and keys can be obtained from your LoRaWan® server. If you use a RAK gateway with an integrated LoRaWan® server or want to use TheThingsNetwork server you can find a tutorial [here](https://doc.rakwireless.com/rak7258-micro-gateway/overview)     
+The devices must be registered on your LoRaWan® server before they can send and receive data. 
+The above mentioned EUIs and keys can be obtained from your LoRaWan® server. 
+If you use a RAK gateway with an integrated LoRaWan® server or want to use TheThingsNetwork server you can find a tutorial [here](https://doc.rakwireless.com/rak7258-micro-gateway/overview)     
 
 ## 2. Hardware Required
 
@@ -32,7 +33,7 @@ The devices must be registered on your LoRaWan® server before they can send and
 
 ## 3. Software Required
 
-### 3.1 Install LoRaWAN library
+### 3.1 Installation of MCCI LoRaWAN LMIC library
 
 After install Arduino IDE and BSP according to the Quick Start Guide, you can install LoRaWAN® library now. Step as below:
 
@@ -44,9 +45,9 @@ After install Arduino IDE and BSP according to the Quick Start Guide, you can in
 
 >Note: This library requires Arduino IDE version 1.6.6 or above, since it requires C99 mode to be enabled by default.
 
-### 3.2 Feature of Arduino-LMIC library
+### 3.2 Features of MCCI LoRaWAN LMIC library
 
-The Arduino-LMIC takes care of all logical MAC states and timing constraints and drives the Semtech SX1276 LoRa radio.
+The MCCI LoRaWAN library takes care of all logical MAC states and timing constraints and drives the Semtech SX1272 LoRa radio.
 Only a limited number of features was tested on Arduino port, so be careful when using any of the untested features.
 Some tested features :
 
@@ -57,8 +58,9 @@ Some tested features :
 - Receiving downlink packets in the RX1 and RX2 windows.
 - MAC command processing
 
-### 3.3 Run a simple example
+The library has only been tested with LoRaWAN 1.0.2/1.03 networks and is not ready for LoRaWAN 1.1 version.
 
+### 3.3  Run a simple example
 RAKwireless provides a lot of example based on this library. Here choose a simple example to show how to develop a LoRaWAN® application.
 
 #### 3.3.1 Scene description
@@ -67,7 +69,8 @@ The example will communicate with server in EU868, join type in OTAA. And send "
 
 #### 3.3.2 Gateway configuration
 
-To test the example, we build node like below in ChirpStack (open-source LoRaWAN® Network Server stack, TTN is also supported and tested). And we can obtain the DeviceEUI, AppEUI, AppKey, copy them. The detailed parameters is below:
+To test the example, we build node like below in ChirpStack (open-source LoRaWAN® Network Server stack, TTN is also supported and tested).
+And we can obtain the DeviceEUI, AppEUI, AppKey, copy them. The detailed parameters is below:
 
 - Region: EU868
 - Join Type: OTAA
@@ -76,44 +79,33 @@ To test the example, we build node like below in ChirpStack (open-source LoRaWAN
 ![4](res/4.png)
 
 #### 3.3.3 Node configuration
+Fill the DEVEUI, APPEUI, APPKEY in the code like below:
 
-Then open the example in Arduino, fill the DeviceEUI, AppEUI, AppKey in the code like below:
+```
+// This EUI must be in little-endian format, so least-significant-byte
+// first. When copying an EUI from ttnctl output, this means to reverse
+// the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
+// 0x70.
+static const u1_t PROGMEM APPEUI[8]={0x15,0x09,0x00,0x00,0x00,0x00,0x00,0x00};
+void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8);}
 
-![5](res/5.png)
+// This should also be in little endian format, see above.
+static const u1_t PROGMEM DEVEUI[8]={0x15,0x09,0x00,0x00,0x00,0x00,0x00,0x00};
+void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8);}
 
-#### 3.3.4 Compile and download
+// This key should be in big endian format (or, since it is not really a
+// number but a block of memory, endianness does not really apply). In
+// practice, a key taken from ttnctl can be copied as-is.
+static const u1_t PROGMEM APPKEY[16] = { 0xb3,0x8b,0x0d,0xef,0x40,0x38,0x31,0x63,0x1f,0x81,0x34,0x8e,0xeb,0xe6,0x9d,0x66 };
+void os_getDevKey (u1_t* buf) {  memcpy_P(buf, APPKEY, 16);}
+```
+Fill in the keys of node on server in little-endian format. Only APPKEY of TTN is big-endian.
 
-There is a USB port on WisBlock. It is a debug port for RAK4631 with three function:
+## 4. LoRaWAN® Demo example analyze
 
-- Power supply
-- Download port in Arduino
-- Communication with RAK4631, incluing log print and command from PC
+Most of what happens in this example occurs in the setup(), on_event() and do_send() functions.
 
-Connect WisBlock to PC via USB. Arduino will recognize the board. The red led is on means power up. Go into tools and choose like below. 
-
-![6](res/6-1594607481721.jpg)
-
-Then click Upload (arrow button), it will compile and download to RAK4600 automatically.
-
-![7](res/7.png)
-
-#### 3.3.5 Log print and server data
-
-Go into Tools, choose the port (Adafruit Feather nRF52840 Express), open Serial Monitor. Log will show as below. It will join automatically and send 'hello!' to server per 20s :
-
-![8](res/8.png)
-
-At the same time, server will show the data from RAK4631.
-
-![9](res/9.png)
-
-It is a very easy way for users to finish their first LoRaWAN® trip. But most users want to apply LoRaWAN® to their own application. RAKwireless also provide a efficient way for them.
-
-### 3.4 LoRaWAN® example analyze
-
-Here will analyze the example above in details, other examples are based on this.
-
-#### 3.4.1 Header files
+### 4.1 Header files
 
 ```
 #include <lmic.h>
@@ -123,11 +115,72 @@ Here will analyze the example above in details, other examples are based on this
 
 The include files above are necessary for all LoRaWAN® example.
 
-#### 3.4.2 LoRaWAN® software configuration 
+### 4.2 API functions
+
+**void LMIC_reset()**
+Reset the MAC state. All session and pending data transfers will be discarded.
+
+### 4.3 Run-time functions
+
+**os_init()**
+
+The project application initializes the run-time environment using the os_init() function.
+
+**void os_runloop()**
+
+Execute run-time jobs from the timer and from the run queues. This function is the main action
+dispatcher. It does not return and must be run on the main thread.
+
+**void onEvent (ev_t ev)**
+
+The LMiC library offers a simple event-based programming model where all protocol events are
+dispatched to the application’s onEvent()
+
+The implementation of this callback function may react on certain events and trigger new actions
+based on the event and the LMIC state. Typically, an implementation processes the events it is
+interested in and schedules further protocol actions using the LMIC API. 
 
 ```
+void setup()
+{
+	...
+    // LMIC init
+    os_init();
+    // Reset the MAC state. Session and pending data transfers will be discarded.
+    LMIC_reset();
+	...
+	
+
+	...
+}
+```
+
+### 4.4 Library parameters configuration
+
+The library configuration file is lmic_project_config.h located on arduino-lmic/project_config folder.
+You can edit configuration parameters for your project.
+The default LoRaWAN version is V1.0.3. Add the line below if you want to select V1.0.2 version.
+```
+#define LMIC_LORAWAN_SPEC_VERSION   LMIC_LORAWAN_SPEC_VERSION_1_0_2 
+```
+The radio transceiver for RAK4600 is SX1272.
 
 ```
+#define CFG_sx1272_radio 1
+```
+You should select one of the LoRaWAN Region Configuration for your project:
+```
+// project-specific definitions
+//#define CFG_eu868 1
+#define CFG_us915 1
+//#define CFG_au915 1
+//#define CFG_as923 1
+// #define LMIC_COUNTRY_CODE LMIC_COUNTRY_CODE_JP	/* for as923-JP */
+//#define CFG_kr920 1
+//#define CFG_in866 1
+
+```
+### 4.5 Library pin map configuration
 
 The lmic_pinmap struct tells the LMIC library how your board is configured. You must declare a variable containing a pin mapping struct in your sketch file.
 The names refer to the pins on the transceiver side and the numbers refer to the Arduino pin numbers.
@@ -148,120 +201,32 @@ const lmic_pinmap lmic_pins = {
     .dio = {27, 28, 29},
 };
 ```
+### 4.6 Software Initialization
 
-#### 3.4.4 User callbacks
-
-```
-`
-#### 3.4.5 OTAA  Keys
-
-```
-//OTAA keys
-uint8_t nodeDeviceEUI[8] = {0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x22, 0x22};
-uint8_t nodeAppEUI[8] = {0xB8, 0x27, 0xEB, 0xFF, 0xFE, 0x39, 0x00, 0x00};
-uint8_t nodeAppKey[16] = {0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88,0x88, 0x88, 0x88, 0x88, 0x22, 0x22, 0x22, 0x22};
-```
-
-Fill in the keys of node on server in MSB.  Only AppKey of TTN is LSB.
-
-#### 3.4.6 Hardware initialization
-
+This part is LoRaWAN® initialization with user's configuration,join type and callbacks.
+First setup() opens the serial console then set up the LMIC (LoraWAN-in-C, formerly LoraMAC-in-C) framework for use with our radio and region-specific radio settings.
+If there isn't a transmission job currently running, we're going to prepare the LoRaWAN packet to send to The Things Network. 
+This occurs in the do_send() function.
+ 
 ```
 void setup()
 {
+// Console init 
+
 	...
-    // LMIC init
+
+ // LMIC init
     os_init();
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
-	...
-	
-
-	...
-}
-```
-
-
-
-#### 3.4.7 Software initialization
-
-
-
-This part is LoRaWAN® initialization with user's configuration,join type and callbacks.
-
-#### 3.4.8 Join
-
-```
-void setup()
-{
-	...
-
+    // Start job (sending automatically starts OTAA too)
+    do_send(&sendjob);
 	...
 }
 ```
 
-Final step in setup() is join to server.
-
-#### 3.4.9 loop
-
-```
-void loop()
-{
-	os_runloop_once();
-}
-```
-
-The main loop
-
-#### 3.4.10  Join callback
-
-```
-void lorawan_has_joined_handler(void)
-{
-  Serial.println("OTAA Mode, Network Joined!");
-
-  lmh_error_status ret = lmh_class_request(gCurrentClass);
-  if(ret == LMH_SUCCESS)
-  {
-    delay(1000);
-  	TimerSetValue(&appTimer, LORAWAN_APP_INTERVAL);
-  	TimerStart(&appTimer);
-  }
-}
-```
-
-If node joins successfully, the stack will call this. User can add what they need here. For example, call lmh_class_request to change Class type. In this example, it starts the timer created before to send data.
-
-#### 3.4.11 Receive callback
-
-```
-void lorawan_rx_handler(lmh_app_data_t *app_data)
-{
-	Serial.printf("LoRa Packet received on port %d, size:%d, rssi:%d, snr:%d, data:%s\n",
-				  app_data->port, app_data->buffsize, app_data->rssi, app_data->snr, app_data->buffer);
-
-}
-```
-
-If node receive data from server, the stack will call this. User can add what they need here. For example, print receive data, RSSI and SNR.
-
-#### 3.4.12 Class confirm callback
-
-```
-void lorawan_confirm_class_handler(DeviceClass_t Class)
-{
-    Serial.printf("switch to class %c done\n", "ABC"[Class]);
-    // Informs the server that switch has occurred ASAP
-    m_lora_app_data.buffsize = 0;
-    m_lora_app_data.port = gAppPort;
-    lmh_send(&m_lora_app_data, gCurrentConfirm);
-}
-```
-
-This callback coordinates with lmh_class_request in Class C. When node needs change to Class C, this will be called after  Class C exchange. And send a uplink to server. Notify server node has changed OK.
-
-#### 3.4.13 Send data
-
+Final step in setup() is call do_send(): Prepare packet and wait for TX_COMPLETE event.
+After the TX_COMPLETE event, a callback is triggered at TX_INTERVAL to send the next packet by calling do_send() again : os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
 ```
 void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
@@ -278,87 +243,131 @@ void do_send(osjob_t* j){
 
 ```
 
-This function will fill in the packet and send data to server. m_lora_app_data is from LoRaWAN® library and size is no more than 242 bytes. For example, User can call this in a timer handle. 
+#### 4.7 loop
 
-#### 3.4.14 Complete code
-
-​	
-
-### 3.5 Parameters configuration
-
-For users, application is different and complicated. Although RAKwireless provide abundant application examples, it can't satisfy every people. In allusion to this, RAKwireless provides a efficient way to config all parameters about LoRaWAN®.
-
-#### 3.5.1 Region configuration
-
-As the example shows, its default region is EU868. User can change it in Arduino like below:
-
-![6](res/6-1594607481721.jpg)
-
-#### 3.5.2 OTAA/ABP configuration
-
-
-#### 3.5.3 Dutycycle configuration
-
-In *.ino,  fill in with **LORAWAN_DUTYCYCLE_OFF** or **LORAWAN_DUTYCYCLE_ON**
+The main loop() calls os_runloop_once(), which calls the LMIC runloop processor.
+The loop causes radio events to occur based on events and time (callbacks).
+The LoRaWAN timing is critical and it's not recommended to place additional code on loop().
 
 ```
-static lmh_param_t lora_param_init = {LORAWAN_ADR_ON , LORAWAN_DATERATE, LORAWAN_PUBLIC_NETWORK, JOINREQ_NBTRIALS, LORAWAN_TX_POWER, LORAWAN_DUTYCYCLE_OFF};
-
+void loop()
+{
+	os_runloop_once();
+}
 ```
+#### 4.8 onEvent
 
-#### 3.5.4 Network configuration
-
-In *.ino,  fill in with **LORAWAN_PUBLIC_NETWORK** or **LORAWAN_PRIVAT_NETWORK**
-
+This callback function may react on certain events and trigger new actions based on the event and the LMIC state.
+Typically, an implementation processes the events it is interested in and schedules further protocol actions using the LMIC API.
+The following callback events will be reported:
 ```
-static lmh_param_t lora_param_init = {LORAWAN_ADR_ON , LORAWAN_DATERATE, LORAWAN_PUBLIC_NETWORK, JOINREQ_NBTRIALS, LORAWAN_TX_POWER, LORAWAN_DUTYCYCLE_OFF};
-```
+    switch(ev) {
+        case EV_SCAN_TIMEOUT:
+            Serial.println(F("EV_SCAN_TIMEOUT"));
+            break;
+        case EV_BEACON_FOUND:
+            Serial.println(F("EV_BEACON_FOUND"));
+            break;
+        case EV_BEACON_MISSED:
+            Serial.println(F("EV_BEACON_MISSED"));
+            break;
+        case EV_BEACON_TRACKED:
+            Serial.println(F("EV_BEACON_TRACKED"));
+            break;
+        case EV_JOINING:
+            //Serial.println(F("EV_JOINING"));
+            Serial.println(F("Start Joining..."));
+            break;
+        case EV_JOINED:
+            Serial.println(F("EV_JOINED"));
+            {
+              u4_t netid = 0;
+              devaddr_t devaddr = 0;
+              u1_t nwkKey[16];
+              u1_t artKey[16];
+              LMIC_getSessionKeys(&netid, &devaddr, nwkKey, artKey);
+              Serial.print("netid: ");
+              Serial.println(netid, DEC);
+              Serial.print("devaddr: ");
+              Serial.println(devaddr, HEX);
+              Serial.print("artKey: ");
+              for (size_t i=0; i<sizeof(artKey); ++i) {
+                Serial.print(artKey[i], HEX);
+              }
+              Serial.println("");
+              Serial.print("nwkKey: ");
+              for (size_t i=0; i<sizeof(nwkKey); ++i) {
+                Serial.print(nwkKey[i], HEX);
+              }
+              Serial.println("");
 
-#### 3.5.5 Keys configuration
+              lora_count = 1;
+            }
+            // Disable link check validation (automatically enabled
+            // during join, but because slow data rates change max TX
+            // size, we don't use it in this example.
+            LMIC_setLinkCheckMode(0);
+            break;
+        /*
+        || This event is defined but not used in the code. No
+        || point in wasting codespace on it.
+        ||
+        || case EV_RFU1:
+        ||     Serial.println(F("EV_RFU1"));
+        ||     break;
+        */
+        case EV_JOIN_FAILED:
+            Serial.println(F("EV_JOIN_FAILED"));
+            break;
+        case EV_REJOIN_FAILED:
+            Serial.println(F("EV_REJOIN_FAILED"));
+            break;
+        case EV_TXCOMPLETE:
+            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            if (LMIC.txrxFlags & TXRX_ACK)
+              Serial.println(F("Received ack\r\n"));
+            if (LMIC.dataLen) {
+              Serial.print(F("Received "));
+              Serial.print(LMIC.dataLen);
+              Serial.println(F(" bytes of payload"));
+            }
+            // Schedule next transmission
+            os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+            break;
+        case EV_LOST_TSYNC:
+            Serial.println(F("EV_LOST_TSYNC"));
+            break;
+        case EV_RESET:
+            Serial.println(F("EV_RESET"));
+            break;
+        case EV_RXCOMPLETE:
+            // data received in ping slot
+            Serial.println(F("EV_RXCOMPLETE"));
+            break;
+        case EV_LINK_DEAD:
+            Serial.println(F("EV_LINK_DEAD"));
+            break;
+        case EV_LINK_ALIVE:
+            Serial.println(F("EV_LINK_ALIVE"));
+            break;
+        /*
+        || This event is defined but not used in the code. No
+        || point in wasting codespace on it.
+        ||
+        || case EV_SCAN_FOUND:
+        ||    Serial.println(F("EV_SCAN_FOUND"));
+        ||    break;
+        */
+        case EV_TXSTART:
+            //Serial.println(F("EV_TXSTART"));
+            os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+            break;
+        default:
+            Serial.print(F("Unknown event: "));
+            Serial.println((unsigned) ev);
+            break;
+    }
 
-So if want to develop own application, better based on examples of RAKwireless in https://github.com/RAKWireless/WisBlock/tree/master/examples/communications/LoRa/LoRaWAN/ . Open in Arduino, change the OTAA/ABP keys according to user's server configuration (TTN and ChirpStack are same with MSB first, only AppKey of TTN is LSB. This part should be pay more attention):
-
-![14](res/14.png)
-
-#### 3.5.6 ADR configuration
-
-In *.ino,  fill in with **LORAWAN_ADR_ON** or **LORAWAN_ADR_OFF**
-
-```
-static lmh_param_t lora_param_init = {LORAWAN_ADR_ON , LORAWAN_DATERATE, LORAWAN_PUBLIC_NETWORK, JOINREQ_NBTRIALS, LORAWAN_TX_POWER, LORAWAN_DUTYCYCLE_OFF};
-```
-
-#### 3.5.7 Datarate configuration
-
-Same in Arduino project, *.ino. Datarate can be set from **DR_0** to **DR_5**:
-
-#define LORAWAN_DATERATE  DR_0 /*LoRaMac datarates definition, from DR_0 to DR_5*/
-
-#### 3.5.8 Tx power configuration
-
-Same in Arduino project, *.ino. Tx power can be set from **TX_POWER_0** to **TX_POWER_15**:
-
-#define LORAWAN_TX_POWER TX_POWER_5 /*LoRaMac tx power definition, from TX_POWER_0 to TX_POWER_15*/
-
-#### 3.5.9 Class configuration
-
-Same in Arduino project, *.ino. Class type  can be set to **CLASS_A** or **CLASS_C**:
-
-DeviceClass_t gCurrentClass = CLASS_A; /* class definition*/
-
-Remember to set node application to Class C in the TTN or ChirpStack when set to Class C.
-
-#### 3.5.10 Packet type configuration
-
-Same in Arduino project, *.ino. Packet type  can be set to **LMH_CONFIRMED_MSG** or **LMH_UNCONFIRMED_MSG**:
-
-lmh_confirm gCurrentConfirm = LMH_CONFIRMED_MSG; /* confirm/unconfirm packet definition*/
-
-#### 3.5.11 Packet port configuration
-
-Same in Arduino project, *.ino. LoRaWAN application port  can be set from **0~255** (do not use 224. It is reserved for certification):
-
-uint8_t gAppPort = 2;   /* data port*/
 
 
 >LoRa® is a registered trademark or service mark of Semtech Corporation or its affiliates. LoRaWAN® is a licensed mark.
