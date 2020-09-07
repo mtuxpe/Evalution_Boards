@@ -47,7 +47,7 @@ After install Arduino IDE and BSP according to the Quick Start Guide, you can in
 
 ### 3.2 Features of MCCI LoRaWAN LMIC library
 
-The MCCI LoRaWAN library takes care of all logical MAC states and timing constraints and drives the Semtech SX1272 LoRa radio.
+The MCCI LoRaWAN library takes care of all logical MAC states and timing constraints and drives the Semtech SX1276 LoRa radio.
 Only a limited number of features was tested on Arduino port, so be careful when using any of the untested features.
 Some tested features :
 
@@ -76,7 +76,7 @@ And we can obtain the DeviceEUI, AppEUI, AppKey, copy them. The detailed paramet
 - Join Type: OTAA
 - Class: A
 
-![4](res/4.png)
+![4](/RAK4600/image/4.png)
 
 #### 3.3.3 Node configuration
 Fill the DEVEUI, APPEUI, APPKEY in the code like below:
@@ -140,33 +140,19 @@ The implementation of this callback function may react on certain events and tri
 based on the event and the LMIC state. Typically, an implementation processes the events it is
 interested in and schedules further protocol actions using the LMIC API. 
 
-```
-void setup()
-{
-	...
-    // LMIC init
-    os_init();
-    // Reset the MAC state. Session and pending data transfers will be discarded.
-    LMIC_reset();
-	...
-	
-
-	...
-}
-```
 
 ### 4.4 Library parameters configuration
 
-The library configuration file is lmic_project_config.h located on arduino-lmic/project_config folder.
+The library configuration file is lmic_project_config.h located on your Arduino library folder arduino-lmic/project_config .
 You can edit configuration parameters for your project.
 The default LoRaWAN version is V1.0.3. Add the line below if you want to select V1.0.2 version.
 ```
 #define LMIC_LORAWAN_SPEC_VERSION   LMIC_LORAWAN_SPEC_VERSION_1_0_2 
 ```
-The radio transceiver for RAK4600 is SX1272.
+The radio transceiver for RAK4600 is SX1276.
 
 ```
-#define CFG_sx1272_radio 1
+#define CFG_sx1276_radio 1
 ```
 You should select one of the LoRaWAN Region Configuration for your project:
 ```
@@ -225,8 +211,9 @@ void setup()
 }
 ```
 
-Final step in setup() is call do_send(): Prepare packet and wait for TX_COMPLETE event.
-After the TX_COMPLETE event, a callback is triggered at TX_INTERVAL to send the next packet by calling do_send() again : os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+Final step in setup() is call do_send() to prepare packet and wait for TX_COMPLETE event.
+After the TX_COMPLETE event, a callback is triggered at TX_INTERVAL to send the next packet by calling do_send() again.
+
 ```
 void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
@@ -241,9 +228,23 @@ void do_send(osjob_t* j){
     // Next TX is scheduled after TX_COMPLETE event.
 }
 
+// TX_COMPLETE event
+
+    case EV_TXCOMPLETE:
+        Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+        if (LMIC.txrxFlags & TXRX_ACK)
+              Serial.println(F("Received ack\r\n"));
+        if (LMIC.dataLen) {
+            Serial.print(F("Received "));
+            Serial.print(LMIC.dataLen);
+            Serial.println(F(" bytes of payload"));
+        }
+            // Schedule next transmission
+        os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
+        break;
 ```
 
-#### 4.7 loop
+### 4.7 loop
 
 The main loop() calls os_runloop_once(), which calls the LMIC runloop processor.
 The loop causes radio events to occur based on events and time (callbacks).
@@ -255,7 +256,7 @@ void loop()
 	os_runloop_once();
 }
 ```
-#### 4.8 onEvent
+### 4.8 onEvent
 
 This callback function may react on certain events and trigger new actions based on the event and the LMIC state.
 Typically, an implementation processes the events it is interested in and schedules further protocol actions using the LMIC API.
@@ -367,7 +368,6 @@ The following callback events will be reported:
             Serial.println((unsigned) ev);
             break;
     }
-
-
+```
 
 >LoRa® is a registered trademark or service mark of Semtech Corporation or its affiliates. LoRaWAN® is a licensed mark.
